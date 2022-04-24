@@ -4,18 +4,7 @@ import { prisma } from "~/db.server";
 
 export type { Vote } from "@prisma/client";
 
-export function getVote({
-  id,
-  userId,
-}: Pick<Vote, "id"> & {
-  userId: User["id"];
-}) {
-  return prisma.vote.findFirst({
-    where: { id, userId },
-  });
-}
-
-export function getVoteListItems({ userId }: { userId: User["id"] }) {
+export function getVoteListItemsForUser({ userId }: { userId: User["id"] }) {
   return prisma.vote.findMany({
     where: { userId },
     select: { id: true, url: true },
@@ -26,12 +15,14 @@ export function getVoteListItems({ userId }: { userId: User["id"] }) {
 export function createVote({
   url,
   userId,
-}: Pick<Vote, "url"> & {
+  up,
+}: Pick<Vote, "url" | "up"> & {
   userId: User["id"];
 }) {
   return prisma.vote.create({
     data: {
       url,
+      up,
       user: {
         connect: {
           id: userId,
