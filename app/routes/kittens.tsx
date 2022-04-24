@@ -2,7 +2,7 @@ import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, Link, useFetcher, useLoaderData } from "@remix-run/react";
 import { useState } from "react";
-import { createVote } from "~/models/vote.server";
+import { createVote, getVoteListItemsForUser } from "~/models/vote.server";
 
 import { requireUserId } from "~/session.server";
 import { useUser } from "~/utils";
@@ -25,7 +25,7 @@ type ActionData = {
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await requireUserId(request);
+  const userId = await requireUserId(request);
   var myHeaders = new Headers();
   myHeaders.append("Authorization", "Client-ID 834aeea9283216e");
 
@@ -41,9 +41,20 @@ export const loader: LoaderFunction = async ({ request }) => {
       requestOptions
     )
   ).json();
-  const images = response.data;
+  const images: LoaderData["images"] = response.data;
 
-  return json<LoaderData>({ images });
+  const userVoteUrls = await (
+    await getVoteListItemsForUser({ userId })
+  ).map((voteItem) => voteItem.url);
+
+  const filteredImages = images.filter((image) => {
+    return userVoteUrls.indexOf(image.link) === -1;
+  });
+
+  // Need to fetch more somehow if there are no images here. Maybe a strategy of checking how many votes
+  // a user has to start on what page? No that won't work
+
+  return json<LoaderData>({ images: filteredImages });
 };
 
 export const action: ActionFunction = async ({ request }) => {
