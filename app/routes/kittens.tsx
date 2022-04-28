@@ -2,6 +2,7 @@ import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, Link, useFetcher, useLoaderData } from "@remix-run/react";
 import { useState } from "react";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 import { createVote, getVoteListItemsForUser } from "~/models/vote.server";
 
 import { requireUserId } from "~/session.server";
@@ -90,6 +91,19 @@ export default function NotesPage() {
   const [kittensToVoteOn, setKittensToVoteOn] = useState(data.images);
   const displayedKittens = kittensToVoteOn.slice(0, 1);
 
+  const x = useMotionValue(0);
+  const xInput = [-100, 0, 100];
+  const rotateValue = useTransform(x, [-200, 200], [-20, 20]);
+  const color = useTransform(x, xInput, [
+    "rgb(211, 9, 225)",
+    "rgb(68, 0, 255)",
+    "rgb(3, 209, 0)",
+  ]);
+  const tickPath = useTransform(x, [10, 100], [0, 1]);
+  const crossPathA = useTransform(x, [-10, -55], [0, 1]);
+  const crossPathB = useTransform(x, [-50, -100], [0, 1]);
+  const svgOpacity = useTransform(x, [-100, -10, 10, 100], [1, 0, 0, 1]);
+
   async function voteUp() {
     await fetcher.submit(
       { url: displayedKittens[0].link, up: "up" },
@@ -122,17 +136,85 @@ export default function NotesPage() {
       <main className="mt-4 flex h-full flex-col items-center bg-white">
         <div className="grid h-96 w-96 max-w-xl justify-center">
           {displayedKittens.map((image, index) => (
-            <img
-              src={image.link}
+            <motion.div
+              drag
               key={image.id}
-              height="auto"
-              alt={image.title}
-              className="col-start-1 row-start-1 h-full w-full object-contain object-center"
-            />
+              className="grid h-96 w-96 max-w-xl justify-center"
+              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+              style={{ x, rotate: rotateValue }}
+              onDragEnd={(_, info) => {
+                if (info.offset.x >= 200) {
+                  voteUp();
+                } else if (info.offset.x <= -200) {
+                  voteDown();
+                }
+              }}
+            >
+              <img
+                src={image.link}
+                height="auto"
+                alt={image.title}
+                className="col-start-1 row-start-1 h-full w-full object-contain object-center"
+                draggable="true"
+                onDragStart={(e) => e.preventDefault()}
+              />
+              <motion.svg
+                className="col-start-1 row-start-1 h-full w-full object-contain object-center"
+                viewBox="0 0 50 50"
+                style={{ opacity: svgOpacity }}
+              >
+                <motion.path
+                  fill="none"
+                  strokeWidth="2"
+                  stroke={color}
+                  d="M 0, 20 a 20, 20 0 1,0 40,0 a 20, 20 0 1,0 -40,0"
+                  style={{ translateX: 5, translateY: 5 }}
+                />
+                <motion.path
+                  fill="none"
+                  strokeWidth="2"
+                  stroke={color}
+                  d="M14,26 L 22,33 L 35,16"
+                  strokeDasharray="0 1"
+                  style={{ pathLength: tickPath }}
+                />
+                <motion.path
+                  fill="none"
+                  strokeWidth="2"
+                  stroke={color}
+                  d="M17,17 L33,33"
+                  strokeDasharray="0 1"
+                  style={{ pathLength: crossPathA }}
+                />
+                <motion.path
+                  fill="none"
+                  strokeWidth="2"
+                  stroke={color}
+                  d="M33,17 L17,33"
+                  strokeDasharray="0 1"
+                  style={{ pathLength: crossPathB }}
+                />
+              </motion.svg>
+            </motion.div>
           ))}
         </div>
-        <button onClick={voteDown}>Down</button>
-        <button onClick={voteUp}>Up</button>
+
+        <div className="mt-8 flex w-96 justify-between">
+          <button
+            className="rounded-md px-4 py-2 text-white"
+            style={{ backgroundColor: "rgb(211, 9, 225)" }}
+            onClick={voteDown}
+          >
+            Down
+          </button>
+          <button
+            className="rounded-md px-4 py-2 text-white"
+            style={{ backgroundColor: "rgb(3, 209, 0)" }}
+            onClick={voteUp}
+          >
+            Up
+          </button>
+        </div>
       </main>
     </div>
   );
