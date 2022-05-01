@@ -116,6 +116,8 @@ export default function NotesPage() {
     setKittensToVoteOn(kittensToVoteOn.slice(1, -1));
   }
 
+  const mp4Regex = /(.?)\.(mp4)/gm;
+
   return (
     <div className="flex h-full min-h-screen flex-col">
       <header className="flex items-center justify-between bg-slate-800 p-4 text-white">
@@ -139,7 +141,7 @@ export default function NotesPage() {
             <motion.div
               drag
               key={image.id}
-              className="grid h-96 w-96 max-w-xl justify-center"
+              className="grid h-96 w-96 max-w-xl justify-center overflow-hidden rounded-md bg-white p-2 shadow-md"
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               style={{ x, rotate: rotateValue }}
               onDragEnd={(_, info) => {
@@ -150,14 +152,18 @@ export default function NotesPage() {
                 }
               }}
             >
-              <img
-                src={image.link}
-                height="auto"
-                alt={image.title}
-                className="col-start-1 row-start-1 h-full w-full object-contain object-center"
-                draggable="true"
-                onDragStart={(e) => e.preventDefault()}
-              />
+              {mp4Regex.test(image.link) ? (
+                <video src={image.link} autoPlay />
+              ) : (
+                <img
+                  src={image.link}
+                  height="auto"
+                  alt={image.title}
+                  className="col-start-1 row-start-1 h-full w-full rounded-md object-contain object-center"
+                  draggable="true"
+                  onDragStart={(e) => e.preventDefault()}
+                />
+              )}
               <motion.svg
                 className="col-start-1 row-start-1 h-full w-full object-contain object-center"
                 viewBox="0 0 50 50"
@@ -199,20 +205,18 @@ export default function NotesPage() {
           ))}
         </div>
 
-        <div className="mt-8 flex w-96 justify-between">
+        <div className="mt-8 flex w-96 justify-around">
           <button
-            className="rounded-md px-4 py-2 text-white"
-            style={{ backgroundColor: "rgb(211, 9, 225)" }}
+            className="h-12 w-12 rounded-md rounded-full bg-gradient-to-br from-red-200 to-white text-red-600 shadow-md"
             onClick={voteDown}
           >
-            Down
+            𝗫
           </button>
           <button
-            className="rounded-md px-4 py-2 text-white"
-            style={{ backgroundColor: "rgb(3, 209, 0)" }}
+            className="h-12 w-12 rounded-full bg-gradient-to-br from-green-400 to-white"
             onClick={voteUp}
           >
-            Up
+            ❤️
           </button>
         </div>
       </main>
