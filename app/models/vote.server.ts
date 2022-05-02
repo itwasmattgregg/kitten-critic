@@ -12,6 +12,28 @@ export function getVoteListItemsForUser({ userId }: { userId: User["id"] }) {
   });
 }
 
+export function getLeaderboardKittens() {
+  return prisma.vote.groupBy({
+    by: ["url"],
+    _count: {
+      up: true,
+    },
+    orderBy: {
+      _count: {
+        up: "desc",
+      },
+    },
+    having: {
+      up: {
+        _count: {
+          gt: 0,
+        },
+      },
+    },
+    take: 50,
+  });
+}
+
 export function createVote({
   url,
   userId,

@@ -135,7 +135,7 @@ export default function NotesPage() {
         </Form>
       </header>
 
-      <main className="mt-4 flex h-full flex-col items-center bg-white">
+      <main className="flex min-h-full flex-col items-center bg-white">
         <div className="grid h-96 w-96 max-w-xl justify-center">
           {displayedKittens.map((image, index) => (
             <motion.div
@@ -153,7 +153,7 @@ export default function NotesPage() {
               }}
             >
               {mp4Regex.test(image.link) ? (
-                <video src={image.link} autoPlay />
+                <video src={image.link} autoPlay loop />
               ) : (
                 <img
                   src={image.link}

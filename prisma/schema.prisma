@@ -26,9 +26,10 @@ model Password {
 }
 
 model Vote {
-  id  String  @id @default(cuid())
-  url String
-  up  Boolean
+  id    String  @id @default(cuid())
+  url   String
+  up    Boolean
+  title String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
