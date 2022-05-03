@@ -23,7 +23,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   return json<LoaderData>(images);
 };
 
-export default function NotesPage() {
+export default function LeaderboardPage() {
   const images = useLoaderData() as LoaderData;
   const user = useUser();
 
@@ -33,7 +33,7 @@ export default function NotesPage() {
     <div className="flex h-full min-h-screen flex-col">
       <header className="flex items-center justify-between bg-slate-800 p-4 text-white">
         <h1 className="text-3xl font-bold">
-          <Link to="/">Kitten Critic</Link>
+          <Link to="/kittens">Kitten Critic</Link>
         </h1>
         <p>{user.email}</p>
         <Form action="/logout" method="post">
@@ -46,7 +46,7 @@ export default function NotesPage() {
         </Form>
       </header>
 
-      <main className="mt-4 grid grid-cols-4 bg-white">
+      <main className="grid grid-cols-4 bg-white">
         {images.map((image, index) => (
           <div key={index} className="relative">
             <div className=" absolute top-4 left-4 rounded-md bg-white p-2 shadow-md">
@@ -60,8 +60,6 @@ export default function NotesPage() {
                 height="auto"
                 alt="kitten"
                 className="h-full w-full object-contain object-center"
-                draggable="true"
-                onDragStart={(e) => e.preventDefault()}
               />
             )}
           </div>

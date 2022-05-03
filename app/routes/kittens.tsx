@@ -1,6 +1,12 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, Link, useFetcher, useLoaderData } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  ShouldReloadFunction,
+  useFetcher,
+  useLoaderData,
+} from "@remix-run/react";
 import { useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { createVote, getVoteListItemsForUser } from "~/models/vote.server";
@@ -27,7 +33,8 @@ type ActionData = {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await requireUserId(request);
-  var myHeaders = new Headers();
+
+  const myHeaders = new Headers();
   myHeaders.append("Authorization", "Client-ID 834aeea9283216e");
 
   var requestOptions = {
@@ -36,26 +43,44 @@ export const loader: LoaderFunction = async ({ request }) => {
     redirect: "follow" as RequestRedirect,
   };
 
-  const response = await (
-    await fetch(
-      "https://api.imgur.com/3/gallery/r/kittens/time/week/1",
-      requestOptions
-    )
-  ).json();
-  const images: LoaderData["images"] = response.data;
-
   const userVoteUrls = await (
     await getVoteListItemsForUser({ userId })
   ).map((voteItem) => voteItem.url);
 
-  const filteredImages = images.filter((image) => {
-    return userVoteUrls.indexOf(image.link) === -1;
-  });
+  async function getKittens(page: number): Promise<LoaderData["images"]> {
+    const response = await (
+      await fetch(
+        `https://api.imgur.com/3/gallery/r/kittens/time/week/${page}`,
+        requestOptions
+      )
+    ).json();
+    const images: LoaderData["images"] = response.data;
 
-  // Need to fetch more somehow if there are no images here. Maybe a strategy of checking how many votes
-  // a user has to start on what page? No that won't work
+    const filteredImages = images.filter(
+      (image) => userVoteUrls.indexOf(image.link) === -1
+    );
 
-  return json<LoaderData>({ images: filteredImages });
+    if (filteredImages.length === 0) {
+      return filteredImages.concat(await getKittens(page + 1));
+    } else {
+      return filteredImages;
+    }
+  }
+
+  let images = await getKittens(1);
+
+  return json<LoaderData>({ images });
+};
+
+export const unstable_shouldReload: ShouldReloadFunction = ({ submission }) => {
+  const formData = submission?.formData;
+  const kittensLeft = formData?.get("kittensLeft");
+  console.log(kittensLeft);
+  if (kittensLeft === "1") {
+    return true;
+  }
+
+  return false;
 };
 
 export const action: ActionFunction = async ({ request }) => {
@@ -84,7 +109,7 @@ export const action: ActionFunction = async ({ request }) => {
   }
 };
 
-export default function NotesPage() {
+export default function KittensPage() {
   const data = useLoaderData() as LoaderData;
   const fetcher = useFetcher();
   const user = useUser();
@@ -106,12 +131,19 @@ export default function NotesPage() {
 
   async function voteUp() {
     const { link: url, title } = displayedKittens[0];
-    await fetcher.submit({ url, up: "up", title }, { method: "post" });
-    setKittensToVoteOn(kittensToVoteOn.slice(1, -1));
+    await fetcher.submit(
+      { url, up: "up", title, kittensLeft: kittensToVoteOn.length.toString() },
+      { method: "post" }
+    );
+    setKittensToVoteOn(kittensToVoteOn.slice(1));
   }
   async function voteDown() {
-    await fetcher.submit({ url: displayedKittens[0].link }, { method: "post" });
-    setKittensToVoteOn(kittensToVoteOn.slice(1, -1));
+    const { link: url, title } = displayedKittens[0];
+    await fetcher.submit(
+      { url, title, kittensLeft: kittensToVoteOn.length.toString() },
+      { method: "post" }
+    );
+    setKittensToVoteOn(kittensToVoteOn.slice(1));
   }
 
   const mp4Regex = /(.?)\.(mp4)/gm;
@@ -120,20 +152,24 @@ export default function NotesPage() {
     <div className="flex h-full min-h-screen flex-col">
       <header className="flex items-center justify-between bg-slate-800 p-4 text-white">
         <h1 className="text-3xl font-bold">
-          <Link to="/">Kitten Critic</Link>
+          <Link to="/kittens">Kitten Critic</Link>
         </h1>
+
         <p>{user.email}</p>
-        <Form action="/logout" method="post">
-          <button
-            type="submit"
-            className="rounded bg-slate-600 py-2 px-4 text-blue-100 hover:bg-blue-500 active:bg-blue-600"
-          >
-            Logout
-          </button>
-        </Form>
+        <div className="flex items-center gap-4">
+          <Link to="/leaderboard">Leaderboard</Link>
+          <Form action="/logout" method="post">
+            <button
+              type="submit"
+              className="rounded bg-slate-600 py-2 px-4 text-blue-100 hover:bg-blue-500 active:bg-blue-600"
+            >
+              Logout
+            </button>
+          </Form>
+        </div>
       </header>
 
-      <main className="flex min-h-full flex-col items-center bg-white">
+      <main className="mt-8 flex min-h-full flex-col items-center bg-white">
         <div className="grid h-96 w-96 max-w-xl justify-center">
           {displayedKittens.map((image, index) => (
             <motion.div
