@@ -74,9 +74,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export const unstable_shouldReload: ShouldReloadFunction = ({ submission }) => {
   const formData = submission?.formData;
-  const kittensLeft = formData?.get("kittensLeft");
-  console.log(kittensLeft);
-  if (kittensLeft === "1") {
+  const kittensLeft = parseInt(formData?.get("kittensLeft"));
+  if (kittensLeft === 1) {
     return true;
   }
 
