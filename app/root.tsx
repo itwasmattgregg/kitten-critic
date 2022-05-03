@@ -24,6 +24,10 @@ export const meta: MetaFunction = () => ({
   charset: "utf-8",
   title: "Kitten Critic",
   viewport: "width=device-width,initial-scale=1",
+  "twitter:card": "summary",
+  "twitter:title": "Kitten Critic",
+  "twitter:description": "Hot or not for photos of kittens",
+  "twitter:image": "https://kittencritic.com/images/kittens.jpg"
 });
 
 type LoaderData = {
