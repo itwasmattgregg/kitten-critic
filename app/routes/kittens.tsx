@@ -105,10 +105,8 @@ export default function NotesPage() {
   const svgOpacity = useTransform(x, [-100, -10, 10, 100], [1, 0, 0, 1]);
 
   async function voteUp() {
-    await fetcher.submit(
-      { url: displayedKittens[0].link, up: "up" },
-      { method: "post" }
-    );
+    const { link: url, title } = displayedKittens[0];
+    await fetcher.submit({ url, up: "up", title }, { method: "post" });
     setKittensToVoteOn(kittensToVoteOn.slice(1, -1));
   }
   async function voteDown() {

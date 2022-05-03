@@ -29,7 +29,7 @@ model Vote {
   id    String  @id @default(cuid())
   url   String
   up    Boolean
-  title String
+  title String  @default("")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
