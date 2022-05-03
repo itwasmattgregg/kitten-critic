@@ -58,6 +58,7 @@ export default function NotesPage() {
               <img
                 src={image.url}
                 height="auto"
+                alt="kitten"
                 className="h-full w-full object-contain object-center"
                 draggable="true"
                 onDragStart={(e) => e.preventDefault()}
