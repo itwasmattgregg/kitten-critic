@@ -7,7 +7,7 @@ import {
   useFetcher,
   useLoaderData,
 } from "@remix-run/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { createVote, getVoteListItemsForUser } from "~/models/vote.server";
 
@@ -60,6 +60,8 @@ export const loader: LoaderFunction = async ({ request }) => {
       (image) => userVoteUrls.indexOf(image.link) === -1
     );
 
+    console.log(filteredImages.length);
+
     if (filteredImages.length === 0) {
       return filteredImages.concat(await getKittens(page + 1));
     } else {
@@ -74,8 +76,9 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export const unstable_shouldReload: ShouldReloadFunction = ({ submission }) => {
   const formData = submission?.formData;
-  const kittensLeft = parseInt(formData?.get("kittensLeft"));
-  if (kittensLeft === 1) {
+  const kittensLeft = formData?.get("kittensLeft");
+  console.log(kittensLeft, typeof kittensLeft);
+  if (kittensLeft === "1") {
     return true;
   }
 
@@ -114,6 +117,10 @@ export default function KittensPage() {
   const user = useUser();
   const [kittensToVoteOn, setKittensToVoteOn] = useState(data.images);
   const displayedKittens = kittensToVoteOn.slice(0, 1);
+
+  useEffect(() => {
+    setKittensToVoteOn(data.images);
+  }, [data]);
 
   const x = useMotionValue(0);
   const xInput = [-100, 0, 100];
@@ -186,7 +193,13 @@ export default function KittensPage() {
               }}
             >
               {mp4Regex.test(image.link) ? (
-                <video src={image.link} autoPlay loop />
+                <video
+                  src={image.link}
+                  autoPlay
+                  loop
+                  controls
+                  className="col-start-1 row-start-1 h-full w-full rounded-md"
+                />
               ) : (
                 <img
                   src={image.link}
