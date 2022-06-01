@@ -53,7 +53,7 @@ export default function LeaderboardPage() {
               {image._count.up}👍
             </div>
             {mp4Regex.test(image.url) ? (
-              <video src={image.url} autoPlay loop />
+              <video src={image.url} autoPlay muted loop />
             ) : (
               <img
                 src={image.url}
