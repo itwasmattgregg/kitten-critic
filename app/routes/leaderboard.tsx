@@ -59,6 +59,7 @@ export default function LeaderboardPage() {
                 src={image.url}
                 height="auto"
                 alt="kitten"
+                loading="lazy"
                 className="h-full w-full object-contain object-center"
               />
             )}
